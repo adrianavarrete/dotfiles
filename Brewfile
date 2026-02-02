@@ -17,7 +17,7 @@ brew 'gemini-cli'
 
 cask '1password'
 cask 'arc'
-cask 'chrome'
+cask 'google-chrome'
 cask 'claude'
 cask 'codex'
 cask 'notion-calendar'
