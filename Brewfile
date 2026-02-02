@@ -14,6 +14,7 @@ brew 'colima'
 brew 'starship'
 brew 'gemini-cli'
 brew 'worktrunk'
+brew 'cocoapods'
 
 
 cask '1password'
