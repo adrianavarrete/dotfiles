@@ -13,6 +13,7 @@ brew 'pnpm'
 brew 'colima'
 brew 'starship'
 brew 'gemini-cli'
+brew 'worktrunk'
 
 
 cask '1password'
