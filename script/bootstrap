@@ -140,6 +140,13 @@ install_dotfiles () {
 setup_gitconfig
 install_dotfiles
 
+# Run topic-specific installers
+info 'running installers'
+find -H "$DOTFILES_ROOT" -maxdepth 2 -name 'install.sh' -not -path '*.git*' | while read installer ; do
+  sh "${installer}"
+done
+success 'installers complete'
+
 setup_machine_profile () {
   if [ ! -t 0 ]
   then
