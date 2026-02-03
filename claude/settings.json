@@ -6,7 +6,7 @@
         "Bash(tree:*)",
         "Bash(docker:*)",
         "Bash(git:*)",
-        "Bash(ls*)",
+        "Bash(ls:*)",
         "Bash(pwd)",
         "Bash(which*)",
         "Bash(cat package.json)"

@@ -19,4 +19,4 @@ elif [ "${DOTFILES_MACHINE_PROFILE:-work}" = "work" ] && [ -f "Brewfile.work" ];
 fi
 
 # find the installers and run them iteratively
-find . -name install.sh | while read installer ; do sh -c "${installer}" ; done
+find . -name install.sh | while read installer ; do sh "${installer}" ; done
