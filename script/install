@@ -9,10 +9,13 @@ cd "$(dirname $0)"/..
 echo "› brew bundle"
 brew bundle --file Brewfile
 
-# Home profile installs extra packages from Brewfile.home.
+# Install profile-specific packages based on machine profile
 if [ "${DOTFILES_MACHINE_PROFILE:-work}" = "home" ] && [ -f "Brewfile.home" ]; then
   echo "› brew bundle --file Brewfile.home"
   brew bundle --file Brewfile.home
+elif [ "${DOTFILES_MACHINE_PROFILE:-work}" = "work" ] && [ -f "Brewfile.work" ]; then
+  echo "› brew bundle --file Brewfile.work"
+  brew bundle --file Brewfile.work
 fi
 
 # find the installers and run them iteratively

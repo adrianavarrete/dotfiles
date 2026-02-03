@@ -1,0 +1,13 @@
+cask_args appdir: '/Applications'
+
+
+tap 'homebrew/bundle'
+tap 'steipete/tap/'
+
+brew 'gemini-cli'
+brew 'codex'
+brew 'lazydocker'
+brew 'colima'
+
+cask 'steipete/tap/codexbar'
+cask 'antigravity'

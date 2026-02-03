@@ -1,0 +1,10 @@
+cask_args appdir: '/Applications'
+
+
+tap 'homebrew/bundle'
+
+
+cask 'slack'
+cask 'asana'
+cask 'adobe-acrobat-reader'
+cask 'notion'

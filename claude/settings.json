@@ -1,0 +1,54 @@
+{
+  "model": "sonnet",
+  "permissions": {
+    "allow": [
+        "Read(*)",
+        "Bash(tree:*)",
+        "Bash(docker:*)",
+        "Bash(git:*)",
+        "Bash(ls*)",
+        "Bash(pwd)",
+        "Bash(which*)",
+        "Bash(cat package.json)"
+    ],
+    "ask": [
+        "Bash(git reset*)",
+        "Bash(git push*)",
+        "Bash(git clean -f*)",
+        "Bash(git checkout .*)",
+        "Bash(git restore .*)",
+        "Bash(git branch -D*)",
+        "Bash(git filter-branch*)",
+        "Bash(git rebase*)",
+        "Bash(rm -rf*)",
+        "Bash(docker system prune*)",
+        "Bash(npm publish*)",
+        "Bash(echo $*)",
+        "Bash(*password*)",
+        "Bash(*secret*)"
+    ],
+    "deny": [
+        "Read(**/.env)",
+        "Read(**/.env.*)",
+        "Read(**/secrets.*)",
+        "Read(**/.secrets.*)",
+        "Read(**/secret.*)",
+        "Read(**/.secret.*)",
+        "Read(**/password*)",
+        "Read(**/credentials.*)",
+        "Read(**/.credentials.*)",
+        "Read(**/*.pem)",
+        "Read(**/*.key)",
+        "Read(**/id_rsa)",
+        "Read(**/id_rsa.*)",
+        "Read(**/.aws/*)",
+        "Read(**/.ssh/*)",
+        "Read(**/*_token)",
+        "Read(**/*.token)",
+        "Read(**/token.json)",
+        "Read(**/tokens.json)",
+        "Read(**/*_token*)",
+        "Read(**/*.pfx)"
+    ]
+  }
+}
