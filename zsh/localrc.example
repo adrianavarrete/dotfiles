@@ -1,0 +1,30 @@
+# Machine-Specific Zsh Configuration
+#
+# Copy this file to ~/.localrc to add machine-specific environment variables,
+# aliases, and functions that should not be tracked in your dotfiles repository.
+#
+# Usage:
+#   cp ~/.dotfiles/zsh/localrc.example ~/.localrc
+#   # Then edit ~/.localrc with your machine-specific settings
+#
+# This file is automatically sourced by zshrc.symlink if it exists.
+
+# Example: Machine-specific environment variables
+# export WORK_PROJECT_DIR=~/work/projects
+# export DATABASE_URL=postgresql://localhost/mydb
+
+# Example: Work-specific aliases
+# alias vpn='sudo openconnect vpn.company.com'
+# alias ssh-work='ssh user@work-server.company.com'
+# alias deploy='cd ~/work/deploy && ./deploy.sh'
+
+# Example: Custom project navigation
+# alias proj='cd ~/work/main-project'
+# alias docs='cd ~/work/documentation'
+
+# Example: Machine-specific PATH additions
+# export PATH="$HOME/work/bin:$PATH"
+
+# Example: API keys or credentials (keep these private!)
+# export API_KEY=your_api_key_here
+# export AWS_PROFILE=work
