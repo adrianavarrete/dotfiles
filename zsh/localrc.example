@@ -12,6 +12,7 @@
 # Example: Machine-specific environment variables
 # export WORK_PROJECT_DIR=~/work/projects
 # export DATABASE_URL=postgresql://localhost/mydb
+# export DOTFILES_BREWFILE_EXTRA="$HOME/.dotfiles/Brewfile.home"
 
 # Example: Work-specific aliases
 # alias vpn='sudo openconnect vpn.company.com'

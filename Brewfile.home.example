@@ -1,0 +1,6 @@
+cask_args appdir: '/Applications'
+
+# Example: packages only for your home machine
+# brew 'mas'
+# cask 'microsoft-teams'
+# cask 'slack'

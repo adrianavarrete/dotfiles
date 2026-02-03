@@ -1,5 +1,10 @@
 cask_args appdir: '/Applications'
 
+# Shared packages for all machines.
+# Machine-specific packages can live in:
+# - Brewfile.<hostname>
+# - file pointed by DOTFILES_BREWFILE_EXTRA
+
 tap 'homebrew/bundle'
 tap 'steipete/tap/'
 
@@ -31,5 +36,4 @@ cask 'sf-symbols'
 cask 'shottr'
 cask 'spotify'
 cask 'steipete/tap/codexbar'
-
 

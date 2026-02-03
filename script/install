@@ -7,7 +7,24 @@ set -e
 cd "$(dirname $0)"/..
 
 echo "› brew bundle"
-brew bundle
+brew bundle --file Brewfile
+
+# Optional machine-specific Brewfile:
+# 1) DOTFILES_BREWFILE_EXTRA=/path/to/Brewfile.home
+# 2) Brewfile.<hostname> in the dotfiles root
+extra_brewfile="${DOTFILES_BREWFILE_EXTRA:-}"
+if [ -z "$extra_brewfile" ]; then
+  hostname_short="$(hostname -s 2>/dev/null || true)"
+  candidate_brewfile="Brewfile.${hostname_short}"
+  if [ -n "$hostname_short" ] && [ -f "$candidate_brewfile" ]; then
+    extra_brewfile="$candidate_brewfile"
+  fi
+fi
+
+if [ -n "$extra_brewfile" ] && [ -f "$extra_brewfile" ]; then
+  echo "› brew bundle --file $extra_brewfile"
+  brew bundle --file "$extra_brewfile"
+fi
 
 # find the installers and run them iteratively
 find . -name install.sh | while read installer ; do sh -c "${installer}" ; done
