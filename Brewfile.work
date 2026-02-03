@@ -1,10 +1,15 @@
 cask_args appdir: '/Applications'
 
-
 tap 'homebrew/bundle'
 
+brew 'mongosh'
 
 cask 'slack'
 cask 'asana'
 cask 'adobe-acrobat-reader'
 cask 'notion'
+cask 'ngrok'
+cask 'docker-desktop'
+cask 'megasync'
+cask 'obsidian'
+
