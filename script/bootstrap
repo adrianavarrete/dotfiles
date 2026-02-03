@@ -140,6 +140,32 @@ install_dotfiles () {
 setup_gitconfig
 install_dotfiles
 
+setup_machine_profile () {
+  if [ ! -t 0 ]
+  then
+    export DOTFILES_MACHINE_PROFILE=work
+    return
+  fi
+
+  user "Select this machine profile:"
+  echo "  [1] Work (install Brewfile)"
+  echo "  [2] Home (install Brewfile + Brewfile.home)"
+  read -r -p "Choose an option [1-2] (default: 1): " machine_profile
+
+  case "${machine_profile:-1}" in
+    2 )
+      export DOTFILES_MACHINE_PROFILE=home
+      info "selected home profile"
+      ;;
+    * )
+      export DOTFILES_MACHINE_PROFILE=work
+      info "selected work profile"
+      ;;
+  esac
+}
+
+setup_machine_profile
+
 # If we're on a Mac, let's install and setup homebrew.
 if [ "$(uname -s)" == "Darwin" ]
 then
