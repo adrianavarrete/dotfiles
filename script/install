@@ -7,15 +7,15 @@ set -e
 cd "$(dirname $0)"/..
 
 echo "› brew bundle"
-brew bundle --file Brewfile
+brew bundle --file Brewfile || true
 
 # Install profile-specific packages based on machine profile
 if [ "${DOTFILES_MACHINE_PROFILE:-work}" = "home" ] && [ -f "Brewfile.home" ]; then
   echo "› brew bundle --file Brewfile.home"
-  brew bundle --file Brewfile.home
+  brew bundle --file Brewfile.home || true
 elif [ "${DOTFILES_MACHINE_PROFILE:-work}" = "work" ] && [ -f "Brewfile.work" ]; then
   echo "› brew bundle --file Brewfile.work"
-  brew bundle --file Brewfile.work
+  brew bundle --file Brewfile.work || true
 fi
 
 # find the installers and run them iteratively
