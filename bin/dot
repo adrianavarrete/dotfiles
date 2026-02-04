@@ -57,4 +57,5 @@ brew upgrade
 
 # Install software
 echo "› script/install"
+export DOTFILES_MACHINE_PROFILE
 $ZSH/script/install

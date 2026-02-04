@@ -155,7 +155,7 @@ setup_machine_profile () {
   fi
 
   user "Select this machine profile:"
-  echo "  [1] Work (install Brewfile)"
+  echo "  [1] Work (install Brewfile + Brewfile.work)"
   echo "  [2] Home (install Brewfile + Brewfile.home)"
   read -r -p "Choose an option [1-2] (default: 1): " machine_profile
 
