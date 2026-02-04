@@ -177,7 +177,7 @@ setup_machine_profile
 if [ "$(uname -s)" == "Darwin" ]
 then
   info "installing dependencies"
-  if source bin/dot | while read -r data; do info "$data"; done
+  if while read -r data; do info "$data"; done < <(bin/dot)
   then
     success "dependencies installed"
   else
