@@ -1,5 +1,14 @@
 # Load nvm
 export NVM_DIR="$HOME/.nvm"
+
+# Unset npm_config_prefix to avoid conflicts with nvm
+# This can be set by Homebrew's node or global npm config
+unset npm_config_prefix
+
+# BASH_ENV is sourced before non-interactive bash scripts (like npm run scripts)
+# This ensures npm_config_prefix is unset even when npm re-sets it
+export BASH_ENV="$DOTFILES/nvm/nvm-env.sh"
+
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 export DVM_DIR="$HOME/.dvm"
