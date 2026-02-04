@@ -15,4 +15,8 @@ else
   echo "  nvm is already installed."
 fi
 
+# Configure npm to use bash for scripts so BASH_ENV is sourced
+# This ensures npm_config_prefix is unset before nvm runs
+npm config set script-shell /bin/bash
+
 exit 0
