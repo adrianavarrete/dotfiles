@@ -1,0 +1,47 @@
+# Dockerfile.ralph-gemini
+# Custom Gemini CLI image for ralph_gemini_docker.sh iteration script
+# Base: Official Node.js Alpine image
+
+FROM node:20-alpine
+
+# Install git, bash, and build dependencies for Gemini CLI
+RUN apk add --no-cache \
+    git \
+    bash \
+    python3 \
+    make \
+    g++
+
+# Install Gemini CLI globally via npm (requires build tools for native deps)
+RUN npm install -g @google/gemini-cli
+
+# Clean up build dependencies to reduce image size
+RUN apk del make g++ python3
+
+# Create user matching host UID/GID to avoid file ownership issues
+# These are passed as build arguments
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+# Create group and user with specified IDs (Alpine uses addgroup/adduser)
+# First check if group exists, otherwise create it
+RUN (getent group ${GROUP_ID} && echo "Group ${GROUP_ID} exists") || addgroup -g ${GROUP_ID} gemini
+
+# Create user - if UID exists, we'll use a different name but same UID
+RUN adduser -u ${USER_ID} -D -s /bin/bash gemini 2>/dev/null || \
+    (echo "UID ${USER_ID} exists, using existing user" && \
+     USER_NAME=$(getent passwd ${USER_ID} | cut -d: -f1) && \
+     ln -sf /home/$USER_NAME /home/gemini)
+
+# Create directory for Gemini CLI config and credentials
+RUN mkdir -p /home/gemini/.gemini || true && \
+    chown -R ${USER_ID}:${GROUP_ID} /home/gemini 2>/dev/null || true
+
+# Switch to non-root user
+USER gemini
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command (can be overridden)
+CMD ["gemini", "--help"]

@@ -1,0 +1,46 @@
+# Dockerfile.ralph-opencode
+# Custom OpenCode image with pnpm for ralph_opencode.sh iteration script
+# Base: Official OpenCode Docker image (Alpine Linux)
+
+FROM ghcr.io/anomalyco/opencode:latest
+
+# Install Node.js, npm, git, bash, and build tools for native modules
+RUN apk add --no-cache \
+    nodejs \
+    npm \
+    git \
+    bash \
+    python3 \
+    py3-setuptools \
+    build-base
+
+# Install pnpm globally via npm
+RUN npm install -g pnpm
+
+# Create user matching host UID/GID to avoid file ownership issues
+# These are passed as build arguments
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+# Create group and user with specified IDs (Alpine uses addgroup/adduser)
+# First check if group exists, otherwise create it
+RUN (getent group ${GROUP_ID} && echo "Group ${GROUP_ID} exists") || addgroup -g ${GROUP_ID} opencode
+
+# Create user - if UID exists, we'll use a different name but same UID
+RUN adduser -u ${USER_ID} -D -s /bin/bash opencode 2>/dev/null || \
+    (echo "UID ${USER_ID} exists, using existing user" && \
+     USER_NAME=$(getent passwd ${USER_ID} | cut -d: -f1) && \
+     ln -sf /home/$USER_NAME /home/opencode)
+
+# Create directories for OpenCode config and credentials
+RUN mkdir -p /home/opencode/.config/opencode /home/opencode/.local/share/opencode || true && \
+    chown -R ${USER_ID}:${GROUP_ID} /home/opencode 2>/dev/null || true
+
+# Switch to non-root user
+USER opencode
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command (can be overridden)
+CMD ["opencode", "--help"]
