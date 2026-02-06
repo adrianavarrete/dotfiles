@@ -1,2 +1,4 @@
 git/gitconfig.local.symlink
 Brewfile.lock.json
+wireguard/*.local
+wireguard/*.backup.tar.gz

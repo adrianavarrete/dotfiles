@@ -8,6 +8,8 @@ brew 'gemini-cli'
 brew 'codex'
 brew 'lazydocker'
 brew 'colima'
+brew 'wireguard-tools'
+brew 'wireguard-go'
 
 cask 'steipete/tap/codexbar'
 cask 'antigravity'

@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+WIREGUARD_DIR="$DOTFILES_ROOT/wireguard"
+
+WG_ETC_DIR="${WG_ETC_DIR:-/opt/homebrew/etc/wireguard}"
+WG_CONF_PATH="$WG_ETC_DIR/wg0.conf"
+WG_PRIVATE_KEY_PATH="$WG_ETC_DIR/privatekey"
+WG_PUBLIC_KEY_PATH="$WG_ETC_DIR/publickey"
+
+LAUNCHD_LABEL="com.wireguard.wg0"
+LAUNCHD_PATH="/Library/LaunchDaemons/${LAUNCHD_LABEL}.plist"
+
+WG_CONF_TEMPLATE="$WIREGUARD_DIR/wg0.conf.template"
+PLIST_TEMPLATE="$WIREGUARD_DIR/${LAUNCHD_LABEL}.plist.template"
+LOCAL_CONF="$WIREGUARD_DIR/wg0.conf.local"
+LOCAL_PLIST="$WIREGUARD_DIR/${LAUNCHD_LABEL}.plist.local"
+
+DEFAULT_IFACE="$(route -n get default 2>/dev/null | awk '/interface:/{print $2; exit}')"
+WG_ADDRESS="${WG_ADDRESS:-10.100.0.1/24}"
+WG_VPN_CIDR="${WG_VPN_CIDR:-10.100.0.0/24}"
+WG_LISTEN_PORT="${WG_LISTEN_PORT:-51820}"
+WG_PHYSICAL_IFACE="${WG_PHYSICAL_IFACE:-${DEFAULT_IFACE:-en0}}"
+
+log() {
+  printf '› %s\n' "$*"
+}
+
+fail() {
+  printf 'error: %s\n' "$*" >&2
+  exit 1
+}
+
+usage() {
+  cat <<'EOF'
+Usage: bin/wireguard-server <command>
+
+Commands:
+  snapshot  Save current machine config into dotfiles local files (secrets included).
+  install   Install wg0.conf + launchd plist and (re)start the service.
+  start     Start or restart launchd service.
+  stop      Stop launchd service.
+  status    Show launchd and WireGuard status.
+  backup    Create a local tar backup with sensitive WireGuard files.
+
+Environment (for install when no local snapshot exists):
+  WG_PRIVATE_KEY      Optional private key to inject into template.
+  WG_ADDRESS          Defaults to 10.100.0.1/24
+  WG_VPN_CIDR         Defaults to 10.100.0.0/24
+  WG_LISTEN_PORT      Defaults to 51820
+  WG_PHYSICAL_IFACE   Defaults to primary interface from route (fallback en0)
+  WG_QUICK_BIN        Optional override for wg-quick path
+  WG_ETC_DIR          Optional override for WireGuard config directory
+EOF
+}
+
+ensure_cmd() {
+  command -v "$1" >/dev/null 2>&1 || fail "missing required command: $1"
+}
+
+ensure_file() {
+  [ -f "$1" ] || fail "missing required file: $1"
+}
+
+ensure_sudo() {
+  sudo -v
+}
+
+esc_sed() {
+  printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
+}
+
+copy_from_root_if_needed() {
+  local src="$1" dst="$2"
+  if cp "$src" "$dst" 2>/dev/null; then
+    return
+  fi
+
+  ensure_sudo
+  sudo cp "$src" "$dst"
+  sudo chown "$(id -u)":"$(id -g)" "$dst"
+}
+
+render_wg_conf() {
+  local private_key="$1"
+  local output="$2"
+
+  ensure_file "$WG_CONF_TEMPLATE"
+
+  sed \
+    -e "s/__WG_ADDRESS__/$(esc_sed "$WG_ADDRESS")/g" \
+    -e "s/__WG_LISTEN_PORT__/$(esc_sed "$WG_LISTEN_PORT")/g" \
+    -e "s/__WG_PRIVATE_KEY__/$(esc_sed "$private_key")/g" \
+    -e "s/__WG_VPN_CIDR__/$(esc_sed "$WG_VPN_CIDR")/g" \
+    -e "s/__WG_PHYSICAL_IFACE__/$(esc_sed "$WG_PHYSICAL_IFACE")/g" \
+    "$WG_CONF_TEMPLATE" > "$output"
+}
+
+render_launchd_plist() {
+  local output="$1"
+  local wg_quick_bin="${WG_QUICK_BIN:-$(command -v wg-quick || true)}"
+
+  [ -n "$wg_quick_bin" ] || fail "wg-quick not found in PATH"
+  ensure_file "$PLIST_TEMPLATE"
+
+  sed \
+    -e "s#__WG_QUICK_BIN__#$(esc_sed "$wg_quick_bin")#g" \
+    "$PLIST_TEMPLATE" > "$output"
+}
+
+resolve_private_key() {
+  if [ -n "${WG_PRIVATE_KEY:-}" ]; then
+    printf '%s\n' "$WG_PRIVATE_KEY"
+    return
+  fi
+
+  if [ -f "$WG_PRIVATE_KEY_PATH" ]; then
+    cat "$WG_PRIVATE_KEY_PATH"
+    return
+  fi
+
+  ensure_cmd wg
+  wg genkey
+}
+
+write_key_files() {
+  local private_key="$1"
+  local tmp_private tmp_public
+  tmp_private="$(mktemp)"
+  tmp_public="$(mktemp)"
+
+  printf '%s\n' "$private_key" > "$tmp_private"
+  printf '%s\n' "$private_key" | wg pubkey > "$tmp_public"
+
+  ensure_sudo
+  sudo mkdir -p "$WG_ETC_DIR"
+  sudo install -m 600 "$tmp_private" "$WG_PRIVATE_KEY_PATH"
+  sudo install -m 600 "$tmp_public" "$WG_PUBLIC_KEY_PATH"
+
+  rm -f "$tmp_private" "$tmp_public"
+}
+
+install_config() {
+  local tmp_conf tmp_plist private_key
+  tmp_conf="$(mktemp)"
+  tmp_plist="$(mktemp)"
+
+  ensure_sudo
+  sudo mkdir -p "$WG_ETC_DIR"
+
+  if [ -f "$LOCAL_CONF" ]; then
+    log "using local config snapshot: $LOCAL_CONF"
+    sudo install -m 600 "$LOCAL_CONF" "$WG_CONF_PATH"
+  else
+    private_key="$(resolve_private_key)"
+    write_key_files "$private_key"
+    render_wg_conf "$private_key" "$tmp_conf"
+    sudo install -m 600 "$tmp_conf" "$WG_CONF_PATH"
+    log "installed config from template: $WG_CONF_TEMPLATE"
+  fi
+
+  if [ -f "$LOCAL_PLIST" ]; then
+    log "using local launchd snapshot: $LOCAL_PLIST"
+    sudo install -m 644 "$LOCAL_PLIST" "$LAUNCHD_PATH"
+  else
+    render_launchd_plist "$tmp_plist"
+    sudo install -m 644 "$tmp_plist" "$LAUNCHD_PATH"
+    log "installed launchd plist from template: $PLIST_TEMPLATE"
+  fi
+
+  rm -f "$tmp_conf" "$tmp_plist"
+}
+
+start_service() {
+  ensure_sudo
+
+  if sudo launchctl print "system/$LAUNCHD_LABEL" >/dev/null 2>&1; then
+    sudo launchctl kickstart -k "system/$LAUNCHD_LABEL"
+  else
+    sudo launchctl bootstrap system "$LAUNCHD_PATH"
+    sudo launchctl enable "system/$LAUNCHD_LABEL" >/dev/null 2>&1 || true
+    sudo launchctl kickstart -k "system/$LAUNCHD_LABEL"
+  fi
+}
+
+stop_service() {
+  ensure_sudo
+  sudo launchctl bootout "system/$LAUNCHD_LABEL" >/dev/null 2>&1 || true
+}
+
+status() {
+  log "launchd status:"
+  launchctl print "system/$LAUNCHD_LABEL" 2>/dev/null | sed -n '1,30p' || true
+  echo
+  log "wireguard status:"
+  wg show 2>/dev/null || sudo wg show 2>/dev/null || true
+}
+
+snapshot() {
+  ensure_file "$WG_CONF_PATH"
+  ensure_file "$LAUNCHD_PATH"
+
+  copy_from_root_if_needed "$WG_CONF_PATH" "$LOCAL_CONF"
+  copy_from_root_if_needed "$LAUNCHD_PATH" "$LOCAL_PLIST"
+
+  chmod 600 "$LOCAL_CONF"
+  chmod 644 "$LOCAL_PLIST"
+
+  log "snapshot written:"
+  printf '  - %s\n' "$LOCAL_CONF"
+  printf '  - %s\n' "$LOCAL_PLIST"
+}
+
+backup() {
+  local backup_file timestamp
+  timestamp="$(date +%Y%m%d-%H%M%S)"
+  backup_file="$WIREGUARD_DIR/wireguard-${timestamp}.backup.tar.gz"
+
+  ensure_file "$WG_CONF_PATH"
+  ensure_file "$LAUNCHD_PATH"
+
+  tar -czf "$backup_file" -C / "$(echo "$WG_CONF_PATH" | sed 's#^/##')" "$(echo "$LAUNCHD_PATH" | sed 's#^/##')"
+  chmod 600 "$backup_file"
+
+  log "backup created: $backup_file"
+}
+
+main() {
+  case "${1:-}" in
+    snapshot)
+      snapshot
+      ;;
+    install)
+      install_config
+      start_service
+      status
+      ;;
+    start)
+      start_service
+      status
+      ;;
+    stop)
+      stop_service
+      ;;
+    status)
+      status
+      ;;
+    backup)
+      backup
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+}
+
+main "${1:-}"

@@ -1,0 +1,16 @@
+[Interface]
+# VPN subnet and server IP inside the tunnel.
+Address = __WG_ADDRESS__
+ListenPort = __WG_LISTEN_PORT__
+PrivateKey = __WG_PRIVATE_KEY__
+
+# Enable forwarding and NAT traffic to the default network interface.
+PostUp = /usr/sbin/sysctl -w net.inet.ip.forwarding=1
+PostUp = /bin/sh -c 'echo "nat on __WG_PHYSICAL_IFACE__ from __WG_VPN_CIDR__ to any -> (__WG_PHYSICAL_IFACE__)" | pfctl -a com.apple/wireguard -f - && (pfctl -e || true)'
+PostDown = /usr/sbin/sysctl -w net.inet.ip.forwarding=0
+PostDown = /sbin/pfctl -a com.apple/wireguard -F all
+
+# Add one [Peer] section per client.
+#[Peer]
+#PublicKey = REPLACE_ME
+#AllowedIPs = 10.100.0.2/32
