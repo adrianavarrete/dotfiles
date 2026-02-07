@@ -2,6 +2,8 @@
 # ralph_opencode_codex_docker.sh
 # Docker wrapper for ralph_opencode.sh - runs OpenCode iterations in isolated container
 # Uses inline config to override project-level permissions (all allowed except git push)
+# Repo-local skills contract: OpenCode skills must be available at .opencode/skills
+# in the caller repo (directly or via symlink). No automatic .codex/skills fallback.
 # Usage: ./ralph_opencode_codex_docker.sh <iterations>
 
 set -e
@@ -106,6 +108,8 @@ if [ -z "$1" ]; then
     echo "  - Automatic image build on first run"
     echo "  - Git commits use your identity"
     echo "  - File edits persist to host"
+    echo "  - Repo skills loaded from .opencode/skills (if present)"
+    echo "  - No automatic fallback from .codex/skills"
     exit 1
 fi
 
@@ -148,6 +152,7 @@ OPENCODE_PERMISSION='{"*":"allow"}'
 DOCKER_ARGS=(
     --rm
     --user "$(id -u):$(id -g)"
+    # Bind the full caller repo so OpenCode can resolve repo-local skills at .opencode/skills.
     -v "$PWD:/workspace:rw"
     -v "$NODE_MODULES_VOLUME:/workspace/node_modules"
     -v "$HOME/.local/share/opencode:/home/opencode/.local/share/opencode:rw"
