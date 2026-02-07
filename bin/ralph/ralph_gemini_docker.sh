@@ -7,7 +7,9 @@ set -e
 
 # Configuration
 IMAGE_NAME="ralph-gemini:latest"
-DOCKERFILE_PATH="$HOME/bin/Dockerfile.ralph-gemini"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOCKERFILE_PATH="$SCRIPT_DIR/Dockerfile.ralph-gemini"
+BUILD_CONTEXT="$SCRIPT_DIR"
 DEFAULT_MODEL="gemini-3-flash-preview"
 
 # Colors for output
@@ -46,6 +48,10 @@ check_gemini_auth() {
 
 # Check if image exists, build if not
 ensure_image() {
+    if [ ! -f "$DOCKERFILE_PATH" ]; then
+        error "Dockerfile not found at: $DOCKERFILE_PATH"
+    fi
+
     if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
         info "Building $IMAGE_NAME Docker image (one-time setup)..."
         info "This may take 2-5 minutes..."
@@ -55,7 +61,7 @@ ensure_image() {
             --build-arg GROUP_ID="$(id -g)" \
             -t "$IMAGE_NAME" \
             -f "$DOCKERFILE_PATH" \
-            "$HOME/bin/" 2>&1; then
+            "$BUILD_CONTEXT/" 2>&1; then
             error "Failed to build Docker image"
         fi
 

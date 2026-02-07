@@ -8,7 +8,9 @@ set -e
 
 # Configuration
 IMAGE_NAME="ralph-claude:latest"
-DOCKERFILE_PATH="$HOME/bin/Dockerfile.ralph-claude"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOCKERFILE_PATH="$SCRIPT_DIR/Dockerfile.ralph-claude"
+BUILD_CONTEXT="$SCRIPT_DIR"
 
 # Colors for output
 RED='\033[0;31m'
@@ -39,6 +41,10 @@ check_docker() {
 
 # Check if image exists, build if not
 ensure_image() {
+    if [ ! -f "$DOCKERFILE_PATH" ]; then
+        error "Dockerfile not found at: $DOCKERFILE_PATH"
+    fi
+
     if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
         info "Building $IMAGE_NAME Docker image (one-time setup)..."
         info "This may take 2-5 minutes..."
@@ -48,7 +54,7 @@ ensure_image() {
             --build-arg GROUP_ID="$(id -g)" \
             -t "$IMAGE_NAME" \
             -f "$DOCKERFILE_PATH" \
-            "$HOME/bin/" 2>&1; then
+            "$BUILD_CONTEXT/" 2>&1; then
             error "Failed to build Docker image"
         fi
 

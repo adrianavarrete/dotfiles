@@ -2,19 +2,21 @@
 # Custom OpenCode image with pnpm for ralph_opencode.sh iteration script
 # Base: Official OpenCode Docker image (Alpine Linux)
 
+FROM node:20-alpine AS node20
+
 FROM ghcr.io/anomalyco/opencode:latest
 
-# Install Node.js, npm, git, bash, and build tools for native modules
+# Install git, bash, curl, and build tools for native modules
 RUN apk add --no-cache \
-    nodejs \
-    npm \
     git \
     bash \
+    curl \
     python3 \
     py3-setuptools \
     build-base
 
-# Install pnpm globally via npm
+# Copy Node.js 20 toolchain from official node:20-alpine image and install pnpm
+COPY --from=node20 /usr/local/ /usr/local/
 RUN npm install -g pnpm
 
 # Create user matching host UID/GID to avoid file ownership issues
