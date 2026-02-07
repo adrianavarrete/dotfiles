@@ -195,6 +195,7 @@ This should be the one YOU decide has the highest priority,
 4. Append in the pdr.json file the work that was done.
 5. Make a git commit of that task.
 ONLY WORK ON A SINGLE TASK.
+6. If you encounter issues non related with your current task, document them in the progress.txt file and ignore them for now.
 CRITICAL: At the end of EVERY TASK, you must output your status:
 - Output <promise>COMPLETE</promise> if the PRD is fully complete
 - Output <promise>CONTINUE</promise> if any work remains
@@ -216,6 +217,7 @@ This should be the one YOU decide has the highest priority,
 4. Append in the pdr.json file the work that was done.
 5. Make a git commit of that task.
 ONLY WORK ON A SINGLE TASK.
+6. If you encounter issues non related with your current task, document them in the progress.txt file and ignore them for now.
 CRITICAL: At the end of EVERY TASK, you must output your status:
 - Output <promise>COMPLETE</promise> if the PRD is fully complete
 - Output <promise>CONTINUE</promise> if any work remains
