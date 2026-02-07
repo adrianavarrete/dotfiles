@@ -65,8 +65,11 @@ This should be the one YOU decide has the highest priority, \
 4. Append in the pdr.json file the work that was done. \
 5. Make a git commit of that task. \
 ONLY WORK ON A SINGLE TASK. \
-If, while implementing the task, you notice that the PRD is complete, \
-output <promise>COMPLETE</promise>. IMPORTANT DO NOT WRITE <promise>COMPLETE</promise> IF PRD IS NOT COMPLETED TO AVOID BREAKING THE LOOP " 2>&1 | tee /dev/tty)
+CRITICAL: At the end of EVERY TASK, you must output your status: \
+- Output <promise>COMPLETE</promise> if the PRD is fully complete \
+- Output <promise>CONTINUE</promise> if any work remains \
+\
+The loop depends on receiving one of these tags. Never end a response without one. " 2>&1 | tee /dev/tty)
 
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
     echo "PRD complete, exiting."
