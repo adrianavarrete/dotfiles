@@ -192,7 +192,8 @@ This should be the one YOU decide has the highest priority,
 5. Make a git commit of that task.
 ONLY WORK ON A SINGLE TASK.
 If, while implementing the task, you notice that the PRD is complete,
-output <promise>COMPLETE</promise>." 2>&1 | tee /dev/tty)
+output <promise>COMPLETE</promise>. IMPORTANT DO NOT WRITE <promise>COMPLETE</promise> IF PRD
+IS NOT COMPLETED TO AVOID BREAKING THE LOOP " 2>&1 | tee /dev/tty)
     else
         # Non-interactive mode - just capture output
         result=$(docker run "${DOCKER_ARGS[@]}" \
@@ -211,7 +212,7 @@ This should be the one YOU decide has the highest priority,
 5. Make a git commit of that task.
 ONLY WORK ON A SINGLE TASK.
 If, while implementing the task, you notice that the PRD is complete,
-output <promise>COMPLETE</promise>." 2>&1)
+output <promise>COMPLETE</promise>. IMPORTANT DO NOT WRITE <promise>COMPLETE</promise> IF PRD IS NOT COMPLETED TO AVOID BREAKING THE LOOP " 2>&1)
         echo "$result"
     fi
     

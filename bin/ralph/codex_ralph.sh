@@ -36,7 +36,7 @@ This should be the one YOU decide has the highest priority, \
 5. Make a git commit of that feature. \
 ONLY WORK ON A SINGLE FEATURE. \
 If, while implementing the feature, you notice that the PRD is complete, \
-output <promise>COMPLETE</promise>."
+output <promise>COMPLETE</promise>. IMPORTANT DO NOT WRITE <promise>COMPLETE</promise> IF PRD IS NOT COMPLETED TO AVOID BREAKING THE LOOP "
 
   # Display output and check for completion
   if [ -f "${TEMP_OUTPUT}" ]; then

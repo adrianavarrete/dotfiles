@@ -66,7 +66,7 @@ This should be the one YOU decide has the highest priority, \
 5. Make a git commit of that task. \
 ONLY WORK ON A SINGLE TASK. \
 If, while implementing the task, you notice that the PRD is complete, \
-output <promise>COMPLETE</promise>." 2>&1 | tee /dev/tty)
+output <promise>COMPLETE</promise>. IMPORTANT DO NOT WRITE <promise>COMPLETE</promise> IF PRD IS NOT COMPLETED TO AVOID BREAKING THE LOOP " 2>&1 | tee /dev/tty)
 
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
     echo "PRD complete, exiting."
