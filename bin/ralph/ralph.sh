@@ -11,7 +11,7 @@ fi
 # For each iteration, run Claude Code with the following prompt.
 # This prompt is basic, we'll expand it later.
 for ((i=1; i<=$1; i++)); do
-  result=$(claude --permission-mode acceptEdits  "$PWD/.agents/plans/prd.json $PWD/.agents/plans/progress.txt \
+  result=$(claude -p --permission-mode acceptEdits  "$PWD/.agents/plans/prd.json $PWD/.agents/plans/progress.txt \
 1. Decide which task to work on next. \
 This should be the one YOU decide has the highest priority, \
 - not necessarily the first in the list. \

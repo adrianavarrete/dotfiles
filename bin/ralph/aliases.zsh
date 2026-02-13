@@ -1,3 +1,7 @@
+ralph(){
+  "$HOME/.dotfiles/bin/ralph/ralph.sh" "$@"
+}
+
 ralph_claude() {
   "$HOME/.dotfiles/bin/ralph/ralph_claude_docker.sh" "$@"
 }
