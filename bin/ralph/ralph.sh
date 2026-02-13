@@ -11,7 +11,10 @@ fi
 # For each iteration, run Claude Code with the following prompt.
 # This prompt is basic, we'll expand it later.
 for ((i=1; i<=$1; i++)); do
-  result=$(claude -p --permission-mode acceptEdits  "$PWD/.agents/plans/prd.json $PWD/.agents/plans/progress.txt \
+  tmpfile=$(mktemp)
+  trap "rm -f '$tmpfile'" EXIT
+
+  claude -p --permission-mode acceptEdits  "$PWD/.agents/plans/prd.json $PWD/.agents/plans/progress.txt \
 1. Decide which task to work on next. \
 This should be the one YOU decide has the highest priority, \
 - not necessarily the first in the list. \
@@ -26,7 +29,10 @@ CRITICAL: At the end of EVERY TASK, you must output your status: \
 - Output <promise>COMPLETE</promise> if the PRD is fully complete \
 - Output <promise>CONTINUE</promise> if any work remains \
 \
-The loop depends on receiving one of these tags. Never end a response without one. " 2>&1 | tee /dev/tty)
+The loop depends on receiving one of these tags. Never end a response without one. " 2>&1 | tee "$tmpfile"
+
+  result=$(<"$tmpfile")
+  rm -f "$tmpfile"
 
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
     echo "PRD complete, exiting."
