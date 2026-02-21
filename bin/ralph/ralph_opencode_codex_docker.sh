@@ -185,7 +185,6 @@ for ((i=1; i<=$ITERATIONS; i++)); do
             "$IMAGE_NAME" \
             run \
             --model openai/gpt-5.3-codex \
-            --variant medium \
             ".agents/plans/prd.json .agents/plans/progress.txt
 1. Decide which task to work on next.
 This should be the one YOU decide has the highest priority,
@@ -208,7 +207,6 @@ The loop depends on receiving one of these tags. Never end a response without on
             "$IMAGE_NAME" \
             run \
             --model openai/gpt-5.3-codex \
-            --variant medium \
             ".agents/plans/prd.json .agents/plans/progress.txt
 1. Decide which task to work on next.
 This should be the one YOU decide has the highest priority,
