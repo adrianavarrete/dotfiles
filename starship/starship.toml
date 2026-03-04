@@ -7,7 +7,7 @@ $username\
 [](bg:peach fg:red)\
 $directory\
 [](bg:yellow fg:peach)\
-$git_branch\
+${custom.git_branch}\
 $git_status\
 [](fg:yellow bg:green)\
 $c\
@@ -76,9 +76,16 @@ truncation_symbol = "…/"
 "Developer" = "󰲋 "
 
 [git_branch]
+disabled = true
+
+[custom.git_branch]
+command = 'git branch --show-current'
+when = '[ "$(git rev-parse --git-common-dir 2>/dev/null)" = "$(git rev-parse --git-dir 2>/dev/null)" ]'
+shell = ["bash", "--noprofile", "--norc"]
 symbol = ""
 style = "bg:yellow"
-format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
+format = '[[  $output ](fg:crust bg:yellow)]($style)'
+description = "Git branch (hidden in worktrees)"
 
 [git_status]
 style = "bg:yellow"
