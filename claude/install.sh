@@ -10,6 +10,7 @@ CLAUDE_DIR="$HOME/.claude"
 mkdir -p "$CLAUDE_DIR"
 mkdir -p "$CLAUDE_DIR/commands"
 mkdir -p "$CLAUDE_DIR/hooks"
+mkdir -p "$CLAUDE_DIR/skills"
 
 # Symlink the statusline script
 # Remove existing file/symlink first to ensure clean state
@@ -52,6 +53,23 @@ if [ -d "$DOTFILES_CLAUDE/commands" ]; then
 
       ln -s "$cmd_file" "$target"
       echo "  Linked command: /$(basename "$cmd_name" .md)"
+    fi
+  done
+fi
+
+# Symlink skill directories
+if [ -d "$DOTFILES_CLAUDE/skills" ]; then
+  for skill_dir in "$DOTFILES_CLAUDE/skills"/*/; do
+    if [ -d "$skill_dir" ]; then
+      skill_name=$(basename "$skill_dir")
+      target="$CLAUDE_DIR/skills/$skill_name"
+
+      if [ -e "$target" ] || [ -L "$target" ]; then
+        rm -rf "$target"
+      fi
+
+      ln -s "$skill_dir" "$target"
+      echo "  Linked skill: $skill_name"
     fi
   done
 fi
