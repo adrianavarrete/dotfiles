@@ -9,6 +9,7 @@ CLAUDE_DIR="$HOME/.claude"
 # Create ~/.claude directory if it doesn't exist
 mkdir -p "$CLAUDE_DIR"
 mkdir -p "$CLAUDE_DIR/commands"
+mkdir -p "$CLAUDE_DIR/hooks"
 
 # Symlink the statusline script
 # Remove existing file/symlink first to ensure clean state
@@ -19,6 +20,23 @@ ln -s "$DOTFILES_CLAUDE/statusline.sh" "$CLAUDE_DIR/statusline.sh"
 chmod +x "$DOTFILES_CLAUDE/statusline.sh"
 
 echo "  Linked statusline.sh"
+
+# Symlink hook scripts
+if [ -d "$DOTFILES_CLAUDE/hooks" ]; then
+  for hook_file in "$DOTFILES_CLAUDE/hooks"/*.sh; do
+    if [ -f "$hook_file" ]; then
+      hook_name=$(basename "$hook_file")
+      target="$CLAUDE_DIR/hooks/$hook_name"
+
+      if [ -e "$target" ] || [ -L "$target" ]; then
+        rm "$target"
+      fi
+
+      ln -s "$hook_file" "$target"
+      echo "  Linked hook: $hook_name"
+    fi
+  done
+fi
 
 # Symlink command files
 if [ -d "$DOTFILES_CLAUDE/commands" ]; then
