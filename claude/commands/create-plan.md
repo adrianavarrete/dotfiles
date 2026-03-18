@@ -23,7 +23,7 @@ The plan should contain the following sections:
 - Phases (IMPORTANT: each phase should be a vertical slice of the task)
 - Description (brief description of the phase)
 - To-do list (checkboxes list of actions to complete the phase)
-- How we will verify the pashe works correctly
+- How we will verify the phase works correctly
 - Each phase should have a clear definition of how we will verify that it works correctly. If it does not work, we have to iterate on the phase until it works correctly.
 - Next step
 
