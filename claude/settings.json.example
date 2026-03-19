@@ -1,5 +1,4 @@
 {
-  "model": "sonnet",
   "permissions": {
     "allow": [
       "Read(*)",
@@ -9,23 +8,9 @@
       "Bash(ls:*)",
       "Bash(pwd)",
       "Bash(which*)",
-      "Bash(cat package.json)"
-    ],
-    "ask": [
-      "Bash(git reset*)",
-      "Bash(git push*)",
-      "Bash(git clean -f*)",
-      "Bash(git checkout .*)",
-      "Bash(git restore .*)",
-      "Bash(git branch -D*)",
-      "Bash(git filter-branch*)",
-      "Bash(git rebase*)",
-      "Bash(rm -rf*)",
-      "Bash(docker system prune*)",
-      "Bash(npm publish*)",
-      "Bash(echo $*)",
-      "Bash(*password*)",
-      "Bash(*secret*)"
+      "Bash(cat package.json)",
+      "Bash(find *)",
+      "Bash(sed *)"
     ],
     "deny": [
       "Read(**/.env)",
@@ -49,6 +34,22 @@
       "Read(**/tokens.json)",
       "Read(**/*_token*)",
       "Read(**/*.pfx)"
+    ],
+    "ask": [
+      "Bash(git reset*)",
+      "Bash(git push*)",
+      "Bash(git clean -f*)",
+      "Bash(git checkout .*)",
+      "Bash(git restore .*)",
+      "Bash(git branch -D*)",
+      "Bash(git filter-branch*)",
+      "Bash(git rebase*)",
+      "Bash(rm -rf*)",
+      "Bash(docker system prune*)",
+      "Bash(npm publish*)",
+      "Bash(echo $*)",
+      "Bash(*password*)",
+      "Bash(*secret*)"
     ]
   },
   "hooks": {
@@ -78,5 +79,9 @@
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"
-  }
+  },
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true
+  },
+  "effortLevel": "medium"
 }
