@@ -127,9 +127,8 @@ DOCKER_ARGS=(
     --rm
     --user "$(id -u):$(id -g)"
     -v "$PWD:/workspace:rw"
-    -v "$HOME/.anthropic:/home/claude/.anthropic:ro"
-    -v "$HOME/.claude:/home/claude/.claude:ro"
-    -v "$HOME/.gitconfig:/home/claude/.gitconfig:ro"
+    -v "$HOME/.claude:/home/claude/.claude:rw"
+    -v "$HOME/.claude.json:/home/claude/.claude.json:rw"
     -w /workspace
     -e "GIT_AUTHOR_NAME=$GIT_NAME"
     -e "GIT_AUTHOR_EMAIL=$GIT_EMAIL"
@@ -141,14 +140,29 @@ DOCKER_ARGS=(
 for ((i=1; i<=$ITERATIONS; i++)); do
     echo "=== Iteration $i of $ITERATIONS ==="
 
-    # Run docker and capture output (show in real-time if tty available)
-    if [ -t 1 ]; then
-        # Interactive mode - show output in real-time
-        result=$(docker run "${DOCKER_ARGS[@]}" \
-            "$IMAGE_NAME" \
-            --dangerously-skip-permissions \
-            --model claude-sonnet-4-20250514 \
-            ".agents/plans/prd.json .agents/plans/progress.txt
+    # Run docker and capture output while showing in real-time.
+    # Write full command to a temp script, then run via `script` for real PTY
+    # so Claude streams output unbuffered.
+    # NOTE: If you changed the Dockerfile, rebuild first: docker rmi ralph-claude:latest
+    tmpfile=$(mktemp)
+    cmdfile=$(mktemp)
+    cat > "$cmdfile" <<CMDEOF
+docker run \\
+    --rm \\
+    --user "$(id -u):$(id -g)" \\
+    -v "$PWD:/workspace:rw" \\
+    -v "$HOME/.claude:/home/claude/.claude:rw" \\
+    -v "$HOME/.claude.json:/home/claude/.claude.json:rw" \\
+    -w /workspace \\
+    -e "GIT_AUTHOR_NAME=$GIT_NAME" \\
+    -e "GIT_AUTHOR_EMAIL=$GIT_EMAIL" \\
+    -e "GIT_COMMITTER_NAME=$GIT_NAME" \\
+    -e "GIT_COMMITTER_EMAIL=$GIT_EMAIL" \\
+    "$IMAGE_NAME" \\
+    -p \\
+    --dangerously-skip-permissions \\
+    --model sonnet \\
+    ".agents/plans/prd.json .agents/plans/progress.txt
 1. Decide which task to work on next.
 This should be the one YOU decide has the highest priority,
 - not necessarily the first in the list.
@@ -163,31 +177,11 @@ CRITICAL: At the end of EVERY TASK, you must output your status:
 - Output <promise>COMPLETE</promise> if the PRD is fully complete
 - Output <promise>CONTINUE</promise> if any work remains
 
-The loop depends on receiving one of these tags. Never end a response without one. " 2>&1 | tee /dev/tty)
-    else
-        # Non-interactive mode - just capture output
-        result=$(docker run "${DOCKER_ARGS[@]}" \
-            "$IMAGE_NAME" \
-            --dangerously-skip-permissions \
-            --model claude-sonnet-4-20250514 \
-            ".agents/plans/prd.json .agents/plans/progress.txt
-1. Decide which task to work on next.
-This should be the one YOU decide has the highest priority,
-- not necessarily the first in the list.
-3. One task is one PRD item. Work ONLY on that PRD item.
-2. Check any feedback loops, such as types and tests.
-3. Append your progress to the progress.txt file.
-4. Append in the pdr.json file the work that was done.
-5. Make a git commit of that task.
-ONLY WORK ON A SINGLE TASK.
-6. If you encounter issues non related with your current task, document them in the progress.txt file and ignore them for now.
-CRITICAL: At the end of EVERY TASK, you must output your status:
-- Output <promise>COMPLETE</promise> if the PRD is fully complete
-- Output <promise>CONTINUE</promise> if any work remains
-
-The loop depends on receiving one of these tags. Never end a response without one. " 2>&1)
-        echo "$result"
-    fi
+The loop depends on receiving one of these tags. Never end a response without one. "
+CMDEOF
+    script -q "$tmpfile" /bin/bash "$cmdfile"
+    result=$(<"$tmpfile")
+    rm -f "$tmpfile" "$cmdfile"
 
     if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
         echo ""

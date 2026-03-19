@@ -10,7 +10,7 @@ RUN apk add --no-cache \
     bash
 
 # Install Claude Code CLI globally via npm
-RUN npm install -g @anthropic-ai/claude-code
+RUN npm install -g @anthropic-ai/claude-code pnpm
 
 # Create user matching host UID/GID to avoid file ownership issues
 # These are passed as build arguments
@@ -37,5 +37,7 @@ USER claude
 # Set working directory
 WORKDIR /workspace
 
-# Default command (can be overridden)
-CMD ["claude", "--help"]
+# ENTRYPOINT ensures "claude" is always the executable.
+# docker run args are appended to ENTRYPOINT, not replaced.
+ENTRYPOINT ["claude"]
+CMD ["--help"]
