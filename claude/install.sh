@@ -1,9 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env sh
 #
 # Claude Code configuration setup
 # Symlinks the statusline script and provides a template for settings
 
+set -eu
+
 DOTFILES_CLAUDE="$HOME/.dotfiles/claude"
+DOTFILES_ROOT="$HOME/.dotfiles"
 CLAUDE_DIR="$HOME/.claude"
 
 # Create ~/.claude directory if it doesn't exist
@@ -57,22 +60,12 @@ if [ -d "$DOTFILES_CLAUDE/commands" ]; then
   done
 fi
 
-# Symlink skill directories
-if [ -d "$DOTFILES_CLAUDE/skills" ]; then
-  for skill_dir in "$DOTFILES_CLAUDE/skills"/*/; do
-    if [ -d "$skill_dir" ]; then
-      skill_name=$(basename "$skill_dir")
-      target="$CLAUDE_DIR/skills/$skill_name"
-
-      if [ -e "$target" ] || [ -L "$target" ]; then
-        rm -rf "$target"
-      fi
-
-      ln -s "$skill_dir" "$target"
-      echo "  Linked skill: $skill_name"
-    fi
-  done
-fi
+# Symlink shared and Claude-specific skills
+sh "$DOTFILES_ROOT/scripts/link-skills.sh" \
+  "Claude" \
+  "$CLAUDE_DIR/skills" \
+  "$DOTFILES_ROOT/skills" \
+  "$DOTFILES_CLAUDE/skills"
 
 # If settings.json doesn't exist, copy the template
 if [ ! -f "$CLAUDE_DIR/settings.json" ]; then
