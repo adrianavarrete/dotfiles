@@ -134,7 +134,10 @@ fi
 # === Line 1 ===
 printf "${BOLD}${BLUE}%s${RESET}" "$model_short"
 if [ -n "$effort" ]; then
-  printf " ${DIM}%s${RESET}" "$effort"
+  case "$effort" in
+    xhigh|max) printf " ${RED}%s${RESET}" "$effort" ;;
+    *) printf " %s" "$effort" ;;
+  esac
 fi
 printf " ${DIM}│${RESET} "
 
@@ -161,18 +164,18 @@ seven_reset=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
 
 if [ -n "$five_pct" ]; then
   c=$(plan_color "$five_pct")
-  printf "${DIM}5h${RESET} ${c}%s${RESET} ${c}%d%%${RESET} ${DIM}·${RESET} ${DIM}%s${RESET}" \
+  printf "5h ${c}%s${RESET} ${c}%d%%${RESET} ${DIM}·${RESET} %s" \
     "$(make_bar "$five_pct")" "${five_pct%.*}" "$(format_reset "$five_reset")"
 else
-  printf "${DIM}5h —${RESET}"
+  printf "5h ${DIM}—${RESET}"
 fi
 
 printf "    "
 
 if [ -n "$seven_pct" ]; then
   c=$(plan_color "$seven_pct")
-  printf "${DIM}7d${RESET} ${c}%s${RESET} ${c}%d%%${RESET} ${DIM}·${RESET} ${DIM}%s${RESET}" \
+  printf "7d ${c}%s${RESET} ${c}%d%%${RESET} ${DIM}·${RESET} %s" \
     "$(make_bar "$seven_pct")" "${seven_pct%.*}" "$(format_reset "$seven_reset")"
 else
-  printf "${DIM}7d —${RESET}"
+  printf "7d ${DIM}—${RESET}"
 fi
