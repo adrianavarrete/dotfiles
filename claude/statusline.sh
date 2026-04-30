@@ -51,24 +51,24 @@ make_bar() {
 format_reset() {
   local resets_at=$1
   local now diff today_date reset_date tomorrow_date reset_time
-  now=$(date +%s)
+  now=$(/bin/date +%s)
   diff=$((resets_at - now))
   if [ $diff -le 0 ]; then
     printf "now"
     return
   fi
-  today_date=$(TZ=Europe/Madrid date +%Y-%m-%d)
-  tomorrow_date=$(TZ=Europe/Madrid date -v+1d +%Y-%m-%d)
-  reset_date=$(TZ=Europe/Madrid date -r "$resets_at" +%Y-%m-%d)
-  reset_time=$(TZ=Europe/Madrid date -r "$resets_at" +%H:%M)
+  today_date=$(TZ=Europe/Madrid /bin/date +%Y-%m-%d)
+  tomorrow_date=$(TZ=Europe/Madrid /bin/date -v+1d +%Y-%m-%d)
+  reset_date=$(TZ=Europe/Madrid /bin/date -r "$resets_at" +%Y-%m-%d)
+  reset_time=$(TZ=Europe/Madrid /bin/date -r "$resets_at" +%H:%M)
   if [ "$reset_date" = "$today_date" ]; then
     printf "%s" "$reset_time"
   elif [ "$reset_date" = "$tomorrow_date" ]; then
     printf "tomorrow %s" "$reset_time"
   elif [ $diff -lt 604800 ]; then
-    LC_TIME=C TZ=Europe/Madrid date -r "$resets_at" +'%a %H:%M'
+    LC_TIME=C TZ=Europe/Madrid /bin/date -r "$resets_at" +'%a %H:%M'
   else
-    LC_TIME=C TZ=Europe/Madrid date -r "$resets_at" +'%b %d %H:%M'
+    LC_TIME=C TZ=Europe/Madrid /bin/date -r "$resets_at" +'%b %d %H:%M'
   fi
 }
 
