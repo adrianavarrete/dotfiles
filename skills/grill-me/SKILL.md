@@ -8,3 +8,13 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 Ask the questions one at a time.
 
 If a question can be answered by exploring the codebase, explore the codebase instead.
+
+## How to ask
+
+Do NOT use the `AskUserQuestion` tool. I prefer to reply in free-form text, like a teammate — not by picking from a multiple-choice list.
+
+Instead:
+
+- Ask the question in plain prose at the end of your message.
+- Always include your recommended answer and the reasoning behind it, so I can agree, push back, or redirect.
+- One question per turn. Wait for my reply before moving to the next branch.
