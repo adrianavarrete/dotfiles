@@ -12,6 +12,9 @@ then
   source ~/.localrc
 fi
 
+# Claude Code agents pass unquoted globs like --include=*.js; don't let zsh reject them.
+[[ -n $CLAUDECODE ]] && setopt NO_NOMATCH
+
 # all of our zsh files
 typeset -U config_files
 config_files=($ZSH/**/*.zsh)
@@ -29,8 +32,14 @@ do
 done
 
 # initialize autocomplete here, otherwise functions won't be loaded
-autoload -U compinit
-compinit
+# compinit's security check stats every directory in $fpath, which dominated
+# shell startup. Do the full check once a day and trust the cache in between.
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
 
 # load every completion after autocomplete loads
 for file in ${(M)config_files:#*/completion.zsh}
@@ -43,5 +52,43 @@ unset config_files
 export EDITOR="code"
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Sourcing nvm.sh costs ~1s on every shell start, which is what pushed VS Code
+# past its 10s budget for resolving the shell environment (no PATH -> ESLint
+# fails with "spawn node ENOENT"). Instead, put the default version's bin on
+# PATH directly -- node/npm/npx stay available everywhere, including to GUI
+# apps -- and defer nvm.sh until the `nvm` command is actually used.
+() {
+  local default_version bin_dir
+  [[ -r "$NVM_DIR/alias/default" ]] || return 1
+  default_version="$(<"$NVM_DIR/alias/default")"
+  [[ "$default_version" == v* ]] || default_version="v$default_version"
+  bin_dir="$NVM_DIR/versions/node/$default_version/bin"
+  [[ -d "$bin_dir" ]] || return 1
+  export PATH="$bin_dir:$PATH"
+} || {
+  # Default alias points at something we cannot resolve without nvm (e.g.
+  # `lts/*`), so fall back to loading it eagerly rather than losing node.
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+}
+
+if [[ -z "$NVM_CD_FLAGS" ]]; then  # only if the fallback above did not load nvm
+  nvm() {
+    unfunction nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    nvm "$@"
+  }
+fi
+
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+# Prune worktrees whose branch already reached master through a merged PR. This
+# used to be a LaunchAgent, but launchd runs the job with no TCC grant, so git
+# could not read the repo under ~/Documents and every run since August failed.
+# The shell you are opening already holds that grant. The script's own 7-day
+# stamp keeps the cadence weekly and costs ~18ms to check, so firing it on every
+# shell is free; the subshell detaches the pass on the day it does real work.
+if [[ -x "$HOME/.local/bin/wt-prune-merged" ]]; then
+  ("$HOME/.local/bin/wt-prune-merged" --quiet-skip >> "$HOME/Library/Logs/wt-prune-merged.log" 2>&1 &)
+fi
