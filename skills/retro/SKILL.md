@@ -33,7 +33,7 @@ A spec retrospective finds patterns across the tickets of a spec, not in a singl
 
    - If tickets of the spec are not in `Done`, say so before going on, because the patterns of an unfinished spec may change.
    - The plan usage percentages cover the whole account, including the user's own sessions, so treat them as a rough comparison between phases, not as a cost.
-   - The tokens read `new / cache read / out`. Compare phases by the new input and the output. Every turn reads the whole context again from the cache, so a high cache read with little new input means a long session, not expensive work. Records marked `no breakdown` predate the split and mix both, so do not compare them by tokens.
+   - The tokens read `new / cache read / out`. Compare phases by the new input and the output. Every turn reads the whole context again from the cache, so a high cache read with little new input means a long session, not expensive work. New input also counts the context written to the cache again after the cache expired, so before blaming a phase for high new input, check whether its duration or test lock wait explains it. Records marked `no breakdown` predate the split and mix both, so do not compare them by tokens.
 
 4. **Read the evidence behind a pattern.** The orchestrator's comments, which start with 🤖, name the session IDs of each phase. When a pattern needs more than the records and comments, read the transcript of a session with `find ~/.claude/projects -name '<session ID>.jsonl'`. Read only the sessions that support a pattern, such as a failed attempt, a denied action, or a phase that used far more turns than the same phase of other tickets.
 
