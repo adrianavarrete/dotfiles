@@ -1,0 +1,105 @@
+#!/usr/bin/env -S python3 -I
+#
+# Splits a Slack canvas tool result into one file per section.
+#
+# Usage: canvas-split <result-file> [outdir]
+#
+# <result-file> is the file the harness saves when slack_read_canvas or
+# slack_update_canvas output is too large. Both shapes are accepted: the raw
+# read JSON, and the update's [{"type":"text","text":"<json>"}] wrapper.
+#
+# Writes to outdir (default: $TMPDIR/canvas-<canvas_id>):
+#   canvas.md         full markdown, when the result has it (reads only)
+#   sections/NNN.md   one file per section, in document order
+#   index.tsv         NNN, section_id, chars, comments, heading path, first line
+#   meta.json         canvas_id, canvas_url, comment_threads
+#
+# Prints the index as an outline so one call shows the whole canvas shape.
+# A section is a heading, a paragraph, or a whole list/table. To edit one
+# bullet, replace that whole section with its edited copy.
+import json
+import os
+import re
+import shutil
+import sys
+
+
+def load(path):
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    if isinstance(data, list):
+        texts = [b.get("text", "") for b in data if isinstance(b, dict) and b.get("type") == "text"]
+        data = json.loads("".join(texts))
+    if not isinstance(data, dict) or "section_id_mapping" not in data:
+        sys.exit("canvas-split: no section_id_mapping in %s" % path)
+    return data
+
+
+def first_line(text, width):
+    line = next((l for l in text.splitlines() if l.strip()), "")
+    line = re.sub(r"\s+", " ", line).strip()
+    return line if len(line) <= width else line[: width - 1] + "…"
+
+
+def heading_level(text):
+    m = re.match(r"(#{1,3}) ", text)
+    return len(m.group(1)) if m else 0
+
+
+def main():
+    if len(sys.argv) not in (2, 3) or sys.argv[1] in ("-h", "--help"):
+        sys.exit("usage: canvas-split <result-file> [outdir]")
+    data = load(sys.argv[1])
+    canvas_id = data.get("canvas_id", "unknown")
+    outdir = sys.argv[2] if len(sys.argv) == 3 else os.path.join(
+        os.environ.get("TMPDIR", "/tmp"), "canvas-" + canvas_id)
+
+    # Stale section files from an earlier split would otherwise survive a
+    # re-split after an update that deleted sections.
+    shutil.rmtree(os.path.join(outdir, "sections"), ignore_errors=True)
+    os.makedirs(os.path.join(outdir, "sections"))
+
+    threads = data.get("comment_threads") or []
+    comments = {}
+    for t in threads:
+        comments[t.get("section_id")] = comments.get(t.get("section_id"), 0) + 1
+
+    path = []
+    rows = []
+    for i, (sid, text) in enumerate(data["section_id_mapping"].items(), 1):
+        num = "%03d" % i
+        with open(os.path.join(outdir, "sections", num + ".md"), "w", encoding="utf-8") as f:
+            f.write(text if text.endswith("\n") else text + "\n")
+        level = heading_level(text)
+        if level:
+            path = path[: level - 1] + [first_line(text, 60).lstrip("# ")]
+        depth = level - 1 if level else len(path)
+        rows.append((num, sid, len(text), comments.get(sid, 0), " > ".join(path), depth, text))
+
+    with open(os.path.join(outdir, "index.tsv"), "w", encoding="utf-8") as f:
+        f.write("num\tsection_id\tchars\tcomments\theading_path\tfirst_line\n")
+        for num, sid, chars, n, hpath, _, text in rows:
+            f.write("\t".join([num, sid, str(chars), str(n), hpath, first_line(text, 200)]) + "\n")
+
+    if "markdown_content" in data:
+        with open(os.path.join(outdir, "canvas.md"), "w", encoding="utf-8") as f:
+            f.write(data["markdown_content"])
+    else:
+        try:
+            os.remove(os.path.join(outdir, "canvas.md"))
+        except FileNotFoundError:
+            pass
+
+    with open(os.path.join(outdir, "meta.json"), "w", encoding="utf-8") as f:
+        json.dump({k: data[k] for k in ("canvas_id", "canvas_url", "comment_threads") if k in data},
+                  f, indent=2)
+
+    print("canvas %s: %d sections, %d comment threads -> %s" % (canvas_id, len(rows), len(threads), outdir))
+    for num, sid, chars, n, _, depth, text in rows:
+        indent = "  " * depth
+        note = " [%d comment%s]" % (n, "" if n == 1 else "s") if n else ""
+        print("%s %s %s%s (%dc)%s" % (num, sid, indent, first_line(text, 70), chars, note))
+
+
+if __name__ == "__main__":
+    main()

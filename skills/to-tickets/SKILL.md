@@ -35,7 +35,8 @@ Write each ticket in the template's sections, as Markdown with `##` headings:
 - **Goal**: one or two sentences on the behavior and why it matters.
 - **Scope**: an `**Includes:**` line and an `**Excludes:**` line.
 - **Acceptance criteria**: one observable behavior per bullet, each one verifiable by a test.
-- **Verification**: how a reviewer checks the result end to end.
+- **Verification**: how a reviewer checks the result end to end. Do not say here whether the ticket needs automated tests, because Automated tests decides it.
+- **Automated tests**: `Required`, or `Not required: <reason>` only when the spec's Testing Decisions explicitly rule out automated tests for what this ticket covers. When the Testing Decisions are ambiguous or say nothing about this ticket, write `Required`. The orchestrator builds the prompts from this value, and the template keeps the section optional only for older tickets, so always write it.
 - **Starting point** (optional): the files and patterns to start from.
 
 Name each ticket as a short task description, because the orchestrator builds the branch name from it. Propose an Initiative for the branch prefix, following the team's branch naming guide: a short kebab-case name of the project, such as `ai` or `multi-content`. Reuse the Initiative the spec or the user already named.
@@ -55,7 +56,7 @@ Write the plan file:
 			"enabling": true,
 			"blockedBy": [],
 			"gid": null,
-			"description": "## Goal\n\n...\n\n## Scope\n\n**Includes:** ...\n\n**Excludes:** ...\n\n## Acceptance criteria\n\n- ...\n\n## Verification\n\n...\n\n## Starting point (optional)\n\n..."
+			"description": "## Goal\n\n...\n\n## Scope\n\n**Includes:** ...\n\n**Excludes:** ...\n\n## Acceptance criteria\n\n- ...\n\n## Verification\n\n...\n\n## Automated tests\n\nRequired\n\n## Starting point (optional)\n\n..."
 		}
 	]
 }
@@ -65,7 +66,7 @@ Write the plan file:
 
 ## 4. Confirm the proposal
 
-Show the proposal in the conversation: a table with each ticket's key, name, blockers, and whether it is the enabling slice, followed by each ticket's Goal and acceptance criteria. Mention the plan file for the full text.
+Show the proposal in the conversation: a table with each ticket's key, name, blockers, whether it is the enabling slice, and its Automated tests value, followed by each ticket's Goal and acceptance criteria. Mention the plan file for the full text.
 
 Then ask with the AskUserQuestion tool, in one call:
 
