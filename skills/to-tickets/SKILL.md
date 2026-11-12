@@ -10,7 +10,7 @@ The orchestrator's ticket plan commands do the deterministic work: they check th
 
 ## 1. Locate the orchestrator and the plan
 
-- The primary checkout is the first `worktree` line of `git worktree list --porcelain`. The orchestrator is `<primary>/.agents/agent-workflow`, and the commands run as `<primary>/.agents/agent-workflow/bin/agent-workflow-tickets <check|render|status> <plan>`. If `config.json` does not exist there, stop and tell the user to run `npm run setup:asana` in that directory.
+- The primary checkout is the first `worktree` line of `git worktree list --porcelain`. The orchestrator is `~/Documents/agent-workflow`, outside Edpuzzle-Web, and the commands run as `~/Documents/agent-workflow/bin/agent-workflow-tickets <check|render|status> <plan>`. If `config.json` does not exist there, stop and tell the user to run `npm run setup:asana` in that directory.
 - The spec is the file the user names, or one they pick from `.agents/specs`. Its path in the plan is relative to the primary checkout, such as `.agents/specs/archive-classes.md`. If the spec exists only in the current worktree, copy it to the same path in the primary checkout first, because the parent task is rendered from there.
 - The plan is `<primary>/.agents/tickets/<spec file name>.json`. If it already exists, run `status` on it before anything else:
   - If `status` found the parent task or any ticket in Asana, the user already confirmed this plan in an earlier run. Show what is left, ask once whether to finish it, and go to step 5. Do not propose new tickets, because different names would duplicate the ones that exist.
@@ -25,10 +25,12 @@ Read the whole spec, the ticket template at `<primary>/.agents/templates/ticket.
 Split the spec into vertical slices:
 
 - **Vertical.** Each ticket delivers working behavior through every layer it needs, such as schema, use case, endpoint, and UI, and can be verified end to end on its own. A ticket that touches both frontend and backend is fine: its PR uses the `(Web - FS)` prefix. Do not split by layer.
-- **Small.** One agent session implements it test-first in under an hour, with one commit per acceptance criterion, and the user can review the PR in one sitting. Three to six acceptance criteria is a good size. Split anything larger.
+- **Small.** One agent session implements it in under an hour, with one commit per acceptance criterion, and the user can review the PR in one sitting. Three to six acceptance criteria is a good size. Aim for at most 15 files in the PR, counting new, modified, and deleted files and tests, but not generated files or i18n translation files. Estimate the count from the Starting point and the layers the ticket touches, and split a ticket that clearly exceeds it. Split anything larger.
 - **Self-contained.** The agent sees only the spec and the ticket. Name the files, modules, and patterns to start from in Starting point, and say in Scope which work belongs to other tickets, by their name.
-- **Enabling slice.** Identify the first slice that opens the path for the rest, usually the thinnest end-to-end path, and mark it as the enabling slice. Exactly one ticket is the enabling slice, and it has no blockers.
+- **Enabling slice.** Identify the first slice that opens the path for the rest, usually the thinnest end-to-end path, and mark it as the enabling slice. Besides that path, it carries what the other tickets share, such as types, the schema, the module's skeleton, the registration of routes or commands, and every new dependency, so that the later tickets do not need to edit those files. Exactly one ticket is the enabling slice, and it has no blockers.
 - **Dependencies.** A ticket is blocked by another only when it builds on that ticket's code. The orchestrator starts a ticket only when every blocker is done, so a dependency that is not needed only delays the work. Tickets that do not depend on each other run in parallel.
+- **Wide, not long.** After the enabling slice, cut the rest so that as many tickets as possible depend only on it. The orchestrator runs several tickets at once, two by default, so a chain of tickets leaves the other slots idle, and every link of a PR train is one more sync that can stop. A chain of more than three tickets is a sign to rethink the cuts before proposing them.
+- **No shared files between parallel tickets.** Tickets that do not block each other run at the same time, so when two of them edit the same file, such as a router, an export index, or an OpenAPI schema, the second one to merge meets conflicts that the user resolves by hand. Move that edit into the enabling slice, or make one ticket block the other. A change to `package.json` or a lockfile always belongs in the enabling slice, because the orchestrator drops any merge that changes the dependency files, even one without conflicts, and the ticket waits for the user.
 
 Write each ticket in the template's sections, as Markdown with `##` headings:
 
@@ -66,7 +68,7 @@ Write the plan file:
 
 ## 4. Confirm the proposal
 
-Show the proposal in the conversation: a table with each ticket's key, name, blockers, whether it is the enabling slice, and its Automated tests value, followed by each ticket's Goal and acceptance criteria. Mention the plan file for the full text.
+Show the proposal in the conversation: a table with each ticket's key, name, blockers, whether it is the enabling slice, and its Automated tests value, followed by each ticket's Goal and acceptance criteria. Give each blocker the reason in a few words, such as `T1 (the endpoint it calls)`, so that the user can spot a dependency that is not needed. A blocker without a concrete reason is one to drop before showing the proposal. Mention the plan file for the full text.
 
 Then ask with the AskUserQuestion tool, in one call:
 
