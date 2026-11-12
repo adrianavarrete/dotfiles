@@ -18,7 +18,7 @@ The orchestrator's ticket plan commands do the deterministic work: they check th
 
 ## 2. Read the spec and the code
 
-Read the whole spec, the ticket template at `<primary>/.agents/templates/ticket.md`, and the code the spec touches, so that each ticket can name its real starting point. Read `check-architecture` when the spec changes a module's public API, a command, query, or event, an OpenAPI schema, or the frontend data layer, because those boundaries decide where a slice can be cut.
+Read the whole spec, the ticket template at `~/Documents/agent-workflow/templates/ticket.md`, and the code the spec touches, so that each ticket can name its real starting point. Read `check-architecture` when the spec changes a module's public API, a command, query, or event, an OpenAPI schema, or the frontend data layer, because those boundaries decide where a slice can be cut.
 
 ## 3. Propose the tickets
 
